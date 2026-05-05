@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>غرفة استعلامات الدواء</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --card: #1c2230;
+      --border: #30363d;
+      --accent: #00d4aa;
+      --accent2: #0ea5e9;
+      --danger: #f87171;
+      --warn: #fbbf24;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    /* ===== HEADER ===== */
+    header {
+      text-align: center;
+      padding: 28px 16px 20px;
+    }
+    .logo-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #000;
+      font-weight: 900;
+      font-size: 13px;
+      padding: 6px 18px;
+      border-radius: 999px;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: clamp(22px, 5vw, 34px);
+      font-weight: 900;
+      line-height: 1.3;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 14px;
+      margin-top: 6px;
+    }
+
+    /* ===== SEARCH BOX ===== */
+    .search-wrap {
+      max-width: 600px;
+      margin: 24px auto 0;
+      position: relative;
+    }
+    .search-input {
+      width: 100%;
+      padding: 18px 56px 18px 24px;
+      font-family: 'Cairo', sans-serif;
+      font-size: 17px;
+      font-weight: 600;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      outline: none;
+      direction: rtl;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .search-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(0,212,170,0.12);
+    }
+    .search-input::placeholder { color: var(--muted); }
+    .search-icon {
+      position: absolute;
+      left: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 22px;
+      opacity: 0.5;
+      pointer-events: none;
+    }
+    .clear-btn {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--border);
+      border: none;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      color: var(--muted);
+      font-size: 16px;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+    .clear-btn:hover { background: var(--danger); color: #fff; }
+    .clear-btn.show { display: flex; }
+
+    /* ===== STATUS BAR ===== */
+    .status-bar {
+      max-width: 900px;
+      margin: 14px auto 0;
+      min-height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+    .spinner.active { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ===== RESULTS AREA ===== */
+    #results {
+      max-width: 900px;
+      margin: 18px auto 40px;
+    }
+
+    /* ===== TABLE WRAPPER ===== */
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      animation: fadeUp 0.3s ease;
+    }
+    @keyframes fadeUp {
+      from { opacity:0; transform: translateY(10px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+
+    .result-count {
+      padding: 14px 20px;
+      font-size: 13px;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .result-count strong { color: var(--accent); font-size: 16px; }
+
+    /* DESKTOP TABLE */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    .data-table th {
+      background: var(--card);
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 12px;
+      padding: 12px 14px;
+      text-align: right;
+      white-space: nowrap;
+      border-bottom: 1px solid var(--border);
+    }
+    .data-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(48,54,61,0.5);
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: rgba(0,212,170,0.04); }
+
+    .drug-name { font-weight: 700; color: #fff; font-size: 15px; }
+    .active-ingredient { color: var(--accent2); font-size: 13px; }
+
+    /* expiry badge */
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .badge-green  { background: rgba(0,212,170,0.15); color: var(--accent); }
+    .badge-yellow { background: rgba(251,191,36,0.15); color: var(--warn); }
+    .badge-red    { background: rgba(248,113,113,0.15); color: var(--danger); }
+
+    .form-chip {
+      background: rgba(14,165,233,0.12);
+      color: var(--accent2);
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-size: 12px;
+      display: inline-block;
+    }
+    .center-text { color: var(--muted); font-size: 13px; }
+
+    /* MOBILE CARDS (hidden on desktop) */
+    .mobile-cards { display: none; }
+
+    .drug-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 12px;
+      animation: fadeUp 0.3s ease;
+    }
+    .drug-card:last-child { margin-bottom: 0; }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      gap: 10px;
+    }
+    .card-name { font-weight: 900; font-size: 17px; color: #fff; }
+    .card-ingredient { color: var(--accent2); font-size: 13px; margin-top: 2px; }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .card-item label {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 3px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .card-item span { font-size: 14px; font-weight: 600; }
+    .card-center {
+      grid-column: 1/-1;
+      border-top: 1px solid var(--border);
+      padding-top: 10px;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .card-center strong { color: var(--text); }
+
+    /* EMPTY / ERROR */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+    .empty-state .icon { font-size: 48px; margin-bottom: 14px; }
+    .empty-state h3 { font-size: 18px; color: var(--text); margin-bottom: 8px; }
+
+    /* RESPONSIVE */
+    @media (max-width: 680px) {
+      .data-table, .data-table thead, .data-table tbody,
+      .data-table th, .data-table td, .data-table tr {
+        display: none;
+      }
+      .result-count { display: flex !important; }
+      .mobile-cards { display: block; padding: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-pill">💊 نظام استعلامات</div>
+  <h1>غرفة استعلامات الدواء</h1>
+  <p class="subtitle">ابحث باسم الدواء أو أول حروفه</p>
+</header>
+
+<div class="search-wrap">
+  <input
+    type="search"
+    class="search-input"
+    id="searchInput"
+    placeholder="اكتب اسم الدواء..."
+    autocomplete="off"
+    autocorrect="off"
+    spellcheck="false"
+  />
+  <span class="search-icon">🔍</span>
+  <button class="clear-btn" id="clearBtn" title="مسح">✕</button>
+</div>
+
+<div class="status-bar">
+  <div class="spinner" id="spinner"></div>
+  <span id="statusText">اكتب على الأقل حرفين للبحث</span>
+</div>
+
+<div id="results"></div>
+
+<script>
+// =========================================================
+// CONFIG — تأكد من صحة البيانات دي
+// =========================================================
+const SHEET_ID   = '1HddJ7VRSfL6iH1JtiSFx4SR09VfSaMdbUgZGo-4AqHE';
+const TAB_NAME   = 'AZ';          // ← اسم التاب بالظبط
+const START_COL  = 'A';
+const END_COL    = 'H';
+// عمود البيانات:  A=اسم الدواء B=المادة الفعالة C=الشكل الدوائي D=علبة/شريط E=كمية F=تاريخ الانتهاء G=عدد الشهور H=المركز
+// صف البداية (بعد الهيدر)
+const DATA_START_ROW = 2;
+// =========================================================
+
+const API_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(TAB_NAME)}&range=${START_COL}${DATA_START_ROW}:${END_COL}`;
+
+let allData    = [];
+let debounceT  = null;
+
+// ---- Fetch all data once ----
+async function loadData() {
+  setStatus('⏳ جاري تحميل البيانات...', true);
+  try {
+    const res  = await fetch(API_URL);
+    const text = await res.text();
+    // Google wraps response in /*O_o*/\ngoogle.visualization.Query.setResponse(...)
+    const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*?)\);?\s*$/)[1]);
+    const rows = json.table.rows;
+
+    allData = rows
+      .map(r => {
+        const c = r.c;
+        const val = (i) => (c[i] && c[i].v !== null && c[i].v !== undefined) ? String(c[i].v).trim() : '';
+        const fmtVal = (i) => (c[i] && c[i].f) ? String(c[i].f).trim() : val(i);
+        return {
+          name:        val(0),
+          ingredient:  val(1),
+          form:        val(2),
+          packType:    val(3),
+          qty:         val(4),
+          expiry:      fmtVal(5),
+          months:      val(6),
+          center:      val(7),
+        };
+      })
+      .filter(r => r.name);
+
+    setStatus(`✅ تم تحميل ${allData.length} صنف — ابدأ البحث`, false);
+  } catch (e) {
+    console.error(e);
+    setStatus('❌ خطأ في تحميل البيانات — تأكد من إعدادات الشيت', false);
+  }
+}
+
+function setStatus(msg, loading) {
+  document.getElementById('statusText').textContent = msg;
+  document.getElementById('spinner').classList.toggle('active', loading);
+}
+
+// ---- Search ----
+function search(q) {
+  q = q.trim().toLowerCase();
+  if (q.length < 2) {
+    document.getElementById('results').innerHTML = '';
+    setStatus('اكتب على الأقل حرفين للبحث', false);
+    return;
+  }
+
+  const hits = allData.filter(r =>
+    r.name.toLowerCase().includes(q) ||
+    r.ingredient.toLowerCase().includes(q)
+  );
+
+  renderResults(hits, q);
+}
+
+// ---- Render ----
+function renderResults(data, q) {
+  const container = document.getElementById('results');
+
+  if (data.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">🔭</div>
+        <h3>لا توجد نتائج</h3>
+        <p>لم يُوجد دواء يطابق "<strong>${q}</strong>"</p>
+      </div>`;
+    setStatus('لا توجد نتائج', false);
+    return;
+  }
+
+  setStatus(`${data.length} نتيجة`, false);
+
+  // Build desktop table rows
+  const tableRows = data.map(r => `
+    <tr>
+      <td>
+        <div class="drug-name">${highlight(r.name, q)}</div>
+        <div class="active-ingredient">${highlight(r.ingredient, q)}</div>
+      </td>
+      <td><span class="form-chip">${r.form}</span></td>
+      <td>${r.packType}</td>
+      <td><strong>${r.qty}</strong></td>
+      <td>${r.expiry}</td>
+      <td>${monthsBadge(r.months)}</td>
+      <td class="center-text">${r.center}</td>
+    </tr>
+  `).join('');
+
+  // Build mobile cards
+  const mobileCards = data.map(r => `
+    <div class="drug-card">
+      <div class="card-header">
+        <div>
+          <div class="card-name">${highlight(r.name, q)}</div>
+          <div class="card-ingredient">${highlight(r.ingredient, q)}</div>
+        </div>
+        ${monthsBadge(r.months)}
+      </div>
+      <div class="card-grid">
+        <div class="card-item">
+          <label>الشكل الدوائي</label>
+          <span class="form-chip">${r.form}</span>
+        </div>
+        <div class="card-item">
+          <label>علبة / شريط</label>
+          <span>${r.packType}</span>
+        </div>
+        <div class="card-item">
+          <label>الكمية</label>
+          <span>${r.qty}</span>
+        </div>
+        <div class="card-item">
+          <label>تاريخ الانتهاء</label>
+          <span>${r.expiry}</span>
+        </div>
+        <div class="card-center">
+          📍 المركز: <strong>${r.center}</strong>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  container.innerHTML = `
+    <div class="table-wrap">
+      <div class="result-count">
+        <span>نتائج البحث عن "<strong>${q}</strong>"</span>
+        <strong>${data.length}</strong>
+      </div>
+      <!-- Desktop table -->
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>اسم الدواء / المادة الفعالة</th>
+              <th>الشكل الدوائي</th>
+              <th>علبة/شريط</th>
+              <th>الكمية</th>
+              <th>تاريخ الانتهاء</th>
+              <th>الشهور المتبقية</th>
+              <th>المركز</th>
+            </tr>
+          </thead>
+          <tbody>${tableRows}</tbody>
+        </table>
+      </div>
+      <!-- Mobile cards -->
+      <div class="mobile-cards">${mobileCards}</div>
+    </div>
+  `;
+}
+
+function highlight(text, q) {
+  if (!q) return text;
+  const re = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
+  return text.replace(re, '<mark style="background:rgba(0,212,170,0.25);color:var(--accent);border-radius:3px;padding:0 2px">$1</mark>');
+}
+
+function monthsBadge(m) {
+  const n = parseFloat(m);
+  if (isNaN(n)) return `<span class="badge badge-yellow">${m || '—'}</span>`;
+  if (n <= 0)   return `<span class="badge badge-red">منتهي</span>`;
+  if (n <= 3)   return `<span class="badge badge-red">${m} شهر ⚠️</span>`;
+  if (n <= 6)   return `<span class="badge badge-yellow">${m} شهر</span>`;
+  return             `<span class="badge badge-green">${m} شهر</span>`;
+}
+
+// ---- Input events ----
+const input    = document.getElementById('searchInput');
+const clearBtn = document.getElementById('clearBtn');
+
+input.addEventListener('input', () => {
+  const val = input.value;
+  clearBtn.classList.toggle('show', val.length > 0);
+  clearTimeout(debounceT);
+  debounceT = setTimeout(() => search(val), 280);
+});
+
+clearBtn.addEventListener('click', () => {
+  input.value = '';
+  clearBtn.classList.remove('show');
+  document.getElementById('results').innerHTML = '';
+  setStatus('اكتب على الأقل حرفين للبحث', false);
+  input.focus();
+});
+
+// ---- Start ----
+loadData();
+</script>
+</body>
+</html>
